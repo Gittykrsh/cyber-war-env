@@ -11,11 +11,7 @@ env = CyberWarEnv()
 # ROOT (HF health check friendly)
 @app.get("/")
 def home():
-    return {
-        "status": "healthy",
-        "message": "Cyber War Env Running",
-        "docs": "/docs"
-    }
+    return {"status": "ok"}
 
 
 # EXTRA HEALTH CHECK (VERY IMPORTANT)
@@ -50,6 +46,10 @@ def state():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+@app.on_event("startup")
+def startup_event():
+    print(" App started successfully")
 
 # ENTRYPOINT (FIXED PORT)
 def main():
