@@ -1,0 +1,24 @@
+[project]
+name = "cyber-war-env"
+version = "0.1.0"
+description = "Gamified cybersecurity RL environment for OpenEnv"
+authors = [
+    { name = "Krish" }
+]
+requires-python = ">=3.10"
+
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "pydantic",
+    "openenv>=0.1.13"
+]
+
+# REQUIRED FOR OPENENV
+[project.scripts]
+server = "server.app:main"
+
+# Build system
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"

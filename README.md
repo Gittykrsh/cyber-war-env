@@ -1,10 +1,40 @@
 ---
 title: Cyber War Env
-emoji: 📚
+emoji: 🤖
 colorFrom: blue
-colorTo: gray
+colorTo: green
 sdk: docker
-pinned: false
+app_port: 8000
+base_path: /web
 ---
 
-Check out the configuration reference at https://huggingface.co/docs/hub/spaces-config-reference
+# Cyber War Environment
+
+## Overview
+This is a cybersecurity simulation environment built using OpenEnv.
+
+An AI agent acts as a security analyst and takes actions to handle cyber threats.
+
+## Objective
+The agent must:
+- Detect attacks
+- Prevent malicious activity
+- Avoid blocking normal users
+
+## Observation
+The agent receives:
+- alerts
+- system_load
+- threat_level
+
+## Actions
+- block_ip
+- investigate
+- rate_limit
+- ignore
+
+## Goal
+Maximize reward by correctly handling threats.
+
+## Run
+uvicorn server.app:app --reload

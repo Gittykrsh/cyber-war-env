@@ -1,0 +1,31 @@
+name: cyber-war-env
+description: Gamified cybersecurity defense environment for AI agents
+version: 0.1.0
+
+entrypoint: server.app:app
+
+# action schema
+actions:
+  type: object
+  properties:
+    action_type:
+      type: string
+      enum: ["block_ip", "ignore", "rate_limit", "investigate"]
+
+# observation schema
+observations:
+  type: object
+  properties:
+    alerts:
+      type: array
+      items:
+        type: object
+        properties:
+          type:
+            type: string
+          severity:
+            type: integer
+    system_load:
+      type: integer
+    threat_level:
+      type: integer
