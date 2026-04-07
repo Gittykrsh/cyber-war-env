@@ -11,7 +11,10 @@ env = CyberWarEnv()
 # optional (root fix - no more 404)
 @app.get("/")
 def home():
-    return {"message": "Cyber War Env Running"}
+    return {
+        "message": "Cyber War Env Running",
+        "docs": "/docs"
+    }
 
 
 # RESET API
