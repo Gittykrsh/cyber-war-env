@@ -1,46 +1,68 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from models import CyberAction
 from server.cyber_env import CyberWarEnv
 
-app = FastAPI()
+app = FastAPI(title="Cyber War OpenEnv")
 
-# global env instance
+# Global environment
 env = CyberWarEnv()
 
 
-# optional (root fix - no more 404)
+# ROOT (HF health check friendly)
 @app.get("/")
 def home():
     return {
+        "status": "healthy",
         "message": "Cyber War Env Running",
         "docs": "/docs"
     }
 
 
+# EXTRA HEALTH CHECK (VERY IMPORTANT)
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
+
 # RESET API
 @app.post("/reset")
 def reset():
-    return env.reset()
+    try:
+        return env.reset()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # STEP API
 @app.post("/step")
 def step(action: CyberAction):
-    return env.step(action)
+    try:
+        return env.step(action)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # STATE API
 @app.get("/state")
 def state():
-    return env.state()
+    try:
+        return env.state()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
-# REQUIRED FOR OPENENV
+# ENTRYPOINT (FIXED PORT)
 def main():
     import uvicorn
-    uvicorn.run("server.app:app", host="0.0.0.0", port=8000)
+    uvicorn.run(
+        "server.app:app",
+        host="0.0.0.0",
+        port=7860,   # FIXED
+        reload=False
+    )
 
 
-# IMPORTANT ENTRYPOINT
+# RUN
 if __name__ == "__main__":
+    print(" Starting Cyber War Env Server...")
     main()
