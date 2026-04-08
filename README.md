@@ -175,14 +175,6 @@ uvicorn server.app:app --host 0.0.0.0 --port 7860
 
 ---
 
-## Author
-
-Krish  
-B.Tech Computer Science Engineering  
-IILM University, Greater Noida  
-
----
-
 ## License
 
 This project is for research and educational purposes.
