@@ -57,7 +57,7 @@ def main():
     uvicorn.run(
         "server.app:app",
         host="0.0.0.0",
-        port=7860,   # FIXED
+        port=8000,   # FIXED
         reload=False
     )
 
