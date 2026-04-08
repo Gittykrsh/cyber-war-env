@@ -106,7 +106,7 @@ def run():
     try:
         episode_scores = []
 
-        # ✅ Run at least 3 tasks (episodes)
+        # Run at least 3 tasks (episodes)
         for episode in range(3):
 
             rewards = []
@@ -139,7 +139,7 @@ def run():
                 if done:
                     break
 
-            # ✅ Per-task (episode) scoring → REQUIRED by Meta
+            # Per-task (episode) scoring → REQUIRED by Meta
             ep_score = sum(rewards) / 10.0
 
             # force score strictly in (0,1)
@@ -150,7 +150,7 @@ def run():
 
             episode_scores.append(ep_score)
 
-        # ✅ Final score = average of all tasks
+        # Final score = average of all tasks
         if episode_scores:
             final_score = sum(episode_scores) / len(episode_scores)
 
