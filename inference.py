@@ -3,7 +3,10 @@ import requests
 from typing import List
 
 # ENV VARIABLES (MANDATORY)
-API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8000")
+API_BASE_URL = os.getenv(
+    "API_BASE_URL",
+    "https://shakyas1mha-cyber-war-env.hf.space"
+)
 MODEL_NAME = os.getenv("MODEL_NAME", "dummy-model")
 TASK_NAME = "cyber-war"
 BENCHMARK = "cyber-war-env"
