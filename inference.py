@@ -104,7 +104,7 @@ def run():
     log_start(task=TASK_NAME, env=BENCHMARK, model=MODEL_NAME)
 
     try:
-        # 👇 RUN MULTIPLE EPISODES (IMPORTANT)
+        # RUN MULTIPLE EPISODES (IMPORTANT)
         for episode in range(3):
 
             state = reset_env()
@@ -125,7 +125,7 @@ def run():
                     error = str(e)
 
                 rewards.append(reward)
-                steps_taken += 1  # total steps across episodes
+                steps_taken += 1
 
                 log_step(step, action, reward, done, error)
 
@@ -147,22 +147,8 @@ def run():
 
         success = score > 0.3
 
-    finally:
-        log_end(success, steps_taken, score, rewards)
-
-        # -------- SCORE -------- #
-        total_reward = sum(rewards)
-
-        # normalize to [0,1]
-        score = total_reward / 10.0
-
-# force into (0,1)
-        if score >= 1.0:
-            score = 0.99
-        elif score <= 0.0:
-            score = 0.01
-
-        success = score > 0.3
+    except Exception as e:
+        print("Fatal Error:", str(e))
 
     finally:
         log_end(success, steps_taken, score, rewards)
