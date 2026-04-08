@@ -3,7 +3,7 @@ import requests
 from typing import List
 
 # ENV VARIABLES (MANDATORY)
-API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:7860")
+API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8000")
 MODEL_NAME = os.getenv("MODEL_NAME", "dummy-model")
 TASK_NAME = "cyber-war"
 BENCHMARK = "cyber-war-env"
@@ -41,7 +41,10 @@ def reset_env():
 
 
 def step_env(action: str):
-    res = requests.post(f"{API_BASE_URL}/step", json={"action": action})
+    res = requests.post(
+        f"{API_BASE_URL}/step",
+        json={"action_type": action}
+    )
     return res.json()
 
 
