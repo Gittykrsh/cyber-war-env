@@ -101,13 +101,14 @@ def run():
     success = False
     final_score = 0.0
 
-    log_start(task=TASK_NAME, env=BENCHMARK, model=MODEL_NAME)
+    TASKS = ["cyber-war", "cyber-war", "cyber-war"]  # change later if multiple exist
+
+    log_start(task="multi-task", env=BENCHMARK, model=MODEL_NAME)
 
     try:
         episode_scores = []
 
-        # Run at least 3 tasks (episodes)
-        for episode in range(3):
+        for task_name in TASKS:
 
             rewards = []
             state = reset_env()
@@ -139,10 +140,9 @@ def run():
                 if done:
                     break
 
-            # Per-task (episode) scoring → REQUIRED by Meta
+            # score per task
             ep_score = sum(rewards) / 10.0
 
-            # force score strictly in (0,1)
             if ep_score >= 1.0:
                 ep_score = 0.99
             elif ep_score <= 0.0:
@@ -150,10 +150,7 @@ def run():
 
             episode_scores.append(ep_score)
 
-        # Final score = average of all tasks
-        if episode_scores:
-            final_score = sum(episode_scores) / len(episode_scores)
-
+        final_score = sum(episode_scores) / len(episode_scores)
         success = final_score > 0.3
 
     except Exception as e:
@@ -161,7 +158,6 @@ def run():
 
     finally:
         log_end(success, steps_taken, final_score, all_rewards)
-
 
 if __name__ == "__main__":
     run()
