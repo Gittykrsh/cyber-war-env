@@ -1,4 +1,9 @@
-from openai import OpenAI
+try:
+    from openai import OpenAI
+except ImportError:
+    import subprocess, sys
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "openai"])
+    from openai import OpenAI
 import os
 try:
     import requests
