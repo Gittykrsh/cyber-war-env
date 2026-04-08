@@ -135,7 +135,13 @@ def run():
         total_reward = sum(rewards)
 
         # normalize to [0,1]
-        score = max(0.0, min(1.0, total_reward / 10.0))
+        score = total_reward / 10.0
+
+# force into (0,1)
+        if score >= 1.0:
+            score = 0.99
+        elif score <= 0.0:
+            score = 0.01
 
         success = score > 0.3
 
