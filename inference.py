@@ -1,3 +1,4 @@
+from openai import OpenAI
 import os
 try:
     import requests
@@ -8,11 +9,12 @@ except ImportError:
 from typing import List
 
 # ENV VARIABLES (MANDATORY)
-API_BASE_URL = os.getenv(
-    "API_BASE_URL",
-    "https://shakyas1mha-cyber-war-env.hf.space"
+API_BASE_URL = os.getenv("API_BASE_URL")
+MODEL_NAME = os.getenv("MODEL_NAME")
+client = OpenAI(
+    base_url=os.getenv("API_BASE_URL"),
+    api_key=os.getenv("HF_TOKEN") or os.getenv("API_KEY")
 )
-MODEL_NAME = os.getenv("MODEL_NAME", "dummy-model")
 TASK_NAME = "cyber-war"
 BENCHMARK = "cyber-war-env"
 
@@ -59,18 +61,31 @@ def step_env(action: str):
 # ---------------- SIMPLE AGENT ---------------- #
 
 def choose_action(obs):
-    """
-    Simple rule-based agent
-    (later LLM se replace kar sakte hain)
-    """
-    text = str(obs).lower()
+    try:
+        response = client.chat.completions.create(
+            model=MODEL_NAME,
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are a cybersecurity agent. Choose one action: block_ip, rate_limit, investigate, ignore."
+                },
+                {
+                    "role": "user",
+                    "content": str(obs)
+                }
+            ],
+            temperature=0
+        )
 
-    if "alert" in text:
-        return "block_ip"
-    elif "suspicious" in text:
-        return "scan"
-    else:
-        return "monitor"
+        action = response.choices[0].message.content.strip()
+
+        if action not in ["block_ip", "rate_limit", "investigate", "ignore"]:
+            return "investigate"
+
+        return action
+
+    except Exception:
+        return "investigate"
 
 
 # ---------------- MAIN ---------------- #
