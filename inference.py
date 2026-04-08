@@ -104,32 +104,51 @@ def run():
     log_start(task=TASK_NAME, env=BENCHMARK, model=MODEL_NAME)
 
     try:
-        state = reset_env()
+        # 👇 RUN MULTIPLE EPISODES (IMPORTANT)
+        for episode in range(3):
 
-        for step in range(1, MAX_STEPS + 1):
+            state = reset_env()
 
-            action = choose_action(state)
+            for step in range(1, MAX_STEPS + 1):
 
-            try:
-                result = step_env(action)
-                reward = float(result.get("reward", 0.0))
-                done = bool(result.get("done", False))
-                error = None
+                action = choose_action(state)
 
-            except Exception as e:
-                reward = 0.0
-                done = True
-                error = str(e)
+                try:
+                    result = step_env(action)
+                    reward = float(result.get("reward", 0.0))
+                    done = bool(result.get("done", False))
+                    error = None
 
-            rewards.append(reward)
-            steps_taken = step
+                except Exception as e:
+                    reward = 0.0
+                    done = True
+                    error = str(e)
 
-            log_step(step, action, reward, done, error)
+                rewards.append(reward)
+                steps_taken += 1  # total steps across episodes
 
-            state = result if not error else {}
+                log_step(step, action, reward, done, error)
 
-            if done:
-                break
+                state = result if not error else {}
+
+                if done:
+                    break
+
+        # -------- SCORE -------- #
+        total_reward = sum(rewards)
+
+        score = total_reward / 10.0
+
+        # force into (0,1)
+        if score >= 1.0:
+            score = 0.99
+        elif score <= 0.0:
+            score = 0.01
+
+        success = score > 0.3
+
+    finally:
+        log_end(success, steps_taken, score, rewards)
 
         # -------- SCORE -------- #
         total_reward = sum(rewards)
