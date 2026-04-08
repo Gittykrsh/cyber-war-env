@@ -96,17 +96,20 @@ def choose_action(obs):
 # ---------------- MAIN ---------------- #
 
 def run():
-    rewards = []
+    all_rewards = []
     steps_taken = 0
     success = False
-    score = 0.0
+    final_score = 0.0
 
     log_start(task=TASK_NAME, env=BENCHMARK, model=MODEL_NAME)
 
     try:
-        # RUN MULTIPLE EPISODES (IMPORTANT)
+        episode_scores = []
+
+        # ✅ Run at least 3 tasks (episodes)
         for episode in range(3):
 
+            rewards = []
             state = reset_env()
 
             for step in range(1, MAX_STEPS + 1):
@@ -115,6 +118,7 @@ def run():
 
                 try:
                     result = step_env(action)
+
                     reward = float(result.get("reward", 0.0))
                     done = bool(result.get("done", False))
                     error = None
@@ -125,6 +129,7 @@ def run():
                     error = str(e)
 
                 rewards.append(reward)
+                all_rewards.append(reward)
                 steps_taken += 1
 
                 log_step(step, action, reward, done, error)
@@ -134,24 +139,28 @@ def run():
                 if done:
                     break
 
-        # -------- SCORE -------- #
-        total_reward = sum(rewards)
+            # ✅ Per-task (episode) scoring → REQUIRED by Meta
+            ep_score = sum(rewards) / 10.0
 
-        score = total_reward / 10.0
+            # force score strictly in (0,1)
+            if ep_score >= 1.0:
+                ep_score = 0.99
+            elif ep_score <= 0.0:
+                ep_score = 0.01
 
-        # force into (0,1)
-        if score >= 1.0:
-            score = 0.99
-        elif score <= 0.0:
-            score = 0.01
+            episode_scores.append(ep_score)
 
-        success = score > 0.3
+        # ✅ Final score = average of all tasks
+        if episode_scores:
+            final_score = sum(episode_scores) / len(episode_scores)
+
+        success = final_score > 0.3
 
     except Exception as e:
         print("Fatal Error:", str(e))
 
     finally:
-        log_end(success, steps_taken, score, rewards)
+        log_end(success, steps_taken, final_score, all_rewards)
 
 
 if __name__ == "__main__":
