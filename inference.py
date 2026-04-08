@@ -1,5 +1,10 @@
 import os
-import requests
+try:
+    import requests
+except ImportError:
+    import subprocess
+    subprocess.check_call(["pip", "install", "requests"])
+    import requests
 from typing import List
 
 # ENV VARIABLES (MANDATORY)
