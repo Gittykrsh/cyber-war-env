@@ -12,6 +12,7 @@ dependencies = [
     "uvicorn",
     "pydantic",
     "openenv>=0.1.13"
+    "requests"
 ]
 
 # REQUIRED FOR OPENENV
