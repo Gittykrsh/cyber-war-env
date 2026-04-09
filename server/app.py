@@ -24,7 +24,11 @@ def health():
 @app.post("/reset")
 async def reset(request: Request):
     try:
-        data = await request.json()
+        try:
+            data = await request.json()
+        except:
+            data = {}
+
         task = data.get("task", "easy")
 
         return env.reset(task)
