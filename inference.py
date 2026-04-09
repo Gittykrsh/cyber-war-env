@@ -99,21 +99,24 @@ def choose_action(obs):
 # ---------------- MAIN ---------------- #
 
 def run():
-    all_rewards = []
-    steps_taken = 0
-    success = False
-    final_score = 0.0
 
-    TASKS = ["easy", "medium", "hard"]  # change later if multiple exist
+    TASKS = ["easy", "medium", "hard"]
 
-    log_start(task="multi-task", env=BENCHMARK, model=MODEL_NAME)
+    total_rewards = []
+    total_steps = 0
+    final_scores = []
 
-    try:
-        episode_scores = []
+    for task_name in TASKS:
 
-        for task_name in TASKS:
+        rewards = []
+        steps_taken = 0
+        success = False
+        score = 0.0
 
-            rewards = []
+        # IMPORTANT: separate START per task
+        log_start(task=task_name, env=BENCHMARK, model=MODEL_NAME)
+
+        try:
             state = reset_env(task_name)
 
             for step in range(1, MAX_STEPS + 1):
@@ -122,7 +125,6 @@ def run():
 
                 try:
                     result = step_env(action)
-
                     reward = float(result.get("reward", 0.0))
                     done = bool(result.get("done", False))
                     error = None
@@ -133,8 +135,10 @@ def run():
                     error = str(e)
 
                 rewards.append(reward)
-                all_rewards.append(reward)
+                total_rewards.append(reward)
+
                 steps_taken += 1
+                total_steps += 1
 
                 log_step(step, action, reward, done, error)
 
@@ -144,23 +148,20 @@ def run():
                     break
 
             # score per task
-            ep_score = sum(rewards) / 10.0
+            score = sum(rewards) / 10.0
 
-            if ep_score >= 1.0:
-                ep_score = 0.99
-            elif ep_score <= 0.0:
-                ep_score = 0.01
+            if score >= 1.0:
+                score = 0.99
+            elif score <= 0.0:
+                score = 0.01
 
-            episode_scores.append(ep_score)
+            success = score > 0.3
+            final_scores.append(score)
 
-        final_score = sum(episode_scores) / len(episode_scores)
-        success = final_score > 0.3
+        finally:
+            # IMPORTANT: separate END per task
+            log_end(success, steps_taken, score, rewards)
 
-    except Exception as e:
-        print("Fatal Error:", str(e))
-
-    finally:
-        log_end(success, steps_taken, final_score, all_rewards)
 
 if __name__ == "__main__":
     run()
