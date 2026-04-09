@@ -50,8 +50,11 @@ def log_end(success: bool, steps: int, score: float, rewards: List[float]):
 
 # ---------------- ENV CALLS ---------------- #
 
-def reset_env():
-    res = requests.post(f"{API_BASE_URL}/reset")
+def reset_env(task):
+    res = requests.post(
+        f"{API_BASE_URL}/reset",
+        json={"task": task}
+    )
     return res.json()
 
 
@@ -101,7 +104,7 @@ def run():
     success = False
     final_score = 0.0
 
-    TASKS = ["cyber-war", "cyber-war", "cyber-war"]  # change later if multiple exist
+    TASKS = ["easy", "medium", "hard"]  # change later if multiple exist
 
     log_start(task="multi-task", env=BENCHMARK, model=MODEL_NAME)
 
@@ -111,7 +114,7 @@ def run():
         for task_name in TASKS:
 
             rewards = []
-            state = reset_env()
+            state = reset_env(task_name)
 
             for step in range(1, MAX_STEPS + 1):
 

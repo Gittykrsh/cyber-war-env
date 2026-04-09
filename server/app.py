@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from models import CyberAction
 from server.cyber_env import CyberWarEnv
 
@@ -22,9 +22,13 @@ def health():
 
 # RESET API
 @app.post("/reset")
-def reset():
+async def reset(request: Request):
     try:
-        return env.reset()
+        data = await request.json()
+        task = data.get("task", "easy")
+
+        return env.reset(task)
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

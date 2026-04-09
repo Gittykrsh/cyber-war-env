@@ -16,12 +16,12 @@ class CyberWarEnv:
         self.current_task = "easy"
 
     # RESET
-    def reset(self):
+    def reset(self, task="easy"):
         self.step_count = 0
         self.last_reward = 0
 
         # RANDOM TASK
-        self.current_task = random.choice(["easy", "medium", "hard"])
+        self.current_task = task
 
         self.current_alerts = self._generate_alerts()
 
