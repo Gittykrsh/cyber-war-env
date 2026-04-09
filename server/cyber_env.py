@@ -82,28 +82,33 @@ class CyberWarEnv:
     def _generate_alerts(self) -> List[dict]:
         alerts = []
 
-        for _ in range(3):
-            attack_type = random.choice(["ddos", "brute_force", "normal"])
-
-            if attack_type == "ddos":
-                alerts.append({
-                    "type": "ddos",
-                    "severity": random.randint(7, 10),
-                    "is_attack": True
-                })
-
-            elif attack_type == "brute_force":
+        if self.current_task == "easy":
+            # simple attacks
+            for _ in range(2):
                 alerts.append({
                     "type": "brute_force",
-                    "severity": random.randint(5, 8),
+                    "severity": random.randint(6, 8),
                     "is_attack": True
                 })
 
-            else:
+        elif self.current_task == "medium":
+            # mixed traffic
+            for _ in range(3):
+                attack_type = random.choice(["ddos", "normal"])
                 alerts.append({
-                    "type": "normal",
-                    "severity": random.randint(1, 4),
-                    "is_attack": False
+                    "type": attack_type,
+                    "severity": random.randint(4, 9),
+                    "is_attack": attack_type != "normal"
+                })
+
+        elif self.current_task == "hard":
+            # complex scenario
+            for _ in range(5):
+                attack_type = random.choice(["ddos", "brute_force", "normal"])
+                alerts.append({
+                    "type": attack_type,
+                    "severity": random.randint(3, 10),
+                    "is_attack": attack_type != "normal"
                 })
 
         return alerts
