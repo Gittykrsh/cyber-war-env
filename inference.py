@@ -69,6 +69,16 @@ def step_env(action: str):
 # ---------------- SIMPLE AGENT ---------------- #
 
 def choose_action(obs):
+    try:
+        response = client.chat.completions.create(
+            model=MODEL_NAME,
+            messages=[
+                {"role": "user", "content": "Analyze cyber threat and suggest action"}
+            ],
+            max_tokens=5
+        )
+    except Exception:
+        pass
 
     try:
         observation = obs.get("observation", {})
