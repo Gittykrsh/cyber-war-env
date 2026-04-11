@@ -12,16 +12,23 @@ class CyberWarEnv:
         self.last_reward = 0
         self.current_alerts = []
 
-        # NEW
         self.current_task = "easy"
+
+        # NEW: Attack progression (CORE UPGRADE)
+        self.attack_stage = 0
+
+        # NEW: Persistence
+        self.blocked = False
 
     # RESET
     def reset(self, task="easy"):
         self.step_count = 0
         self.last_reward = 0
-
-        # RANDOM TASK
         self.current_task = task
+
+        # reset progression
+        self.attack_stage = 0
+        self.blocked = False
 
         self.current_alerts = self._generate_alerts()
 
@@ -38,9 +45,31 @@ class CyberWarEnv:
     def step(self, action: CyberAction):
         self.step_count += 1
 
+        reward = 0
         obs = self._get_observation()
 
-        base_reward = self._calculate_reward(action, obs)
+        # ATTACK PROGRESSION LOGIC (KEY DIFFERENTIATOR)
+
+        if self.current_task == "hard":
+
+            if action.action_type == "investigate" and self.attack_stage == 0:
+                self.attack_stage = 1
+                reward += 2
+
+            elif action.action_type == "rate_limit" and self.attack_stage == 1:
+                self.attack_stage = 2
+                reward += 3
+
+            elif action.action_type == "block_ip" and self.attack_stage == 2:
+                self.attack_stage = 3
+                self.blocked = True
+                reward += 5
+
+            else:
+                reward -= 1  # wrong sequence penalty
+
+        # BASE REWARD
+        reward += self._calculate_reward(action, obs)
 
         # TASK GRADING
         if self.current_task == "easy":
@@ -50,15 +79,23 @@ class CyberWarEnv:
         else:
             task_score = self._grade_hard(obs)
 
-        # FINAL REWARD (base + task)
-        reward = base_reward + (task_score * 10)
+        # FINAL REWARD
+        reward += task_score * 10
 
         self.last_reward = reward
 
-        # next alerts
+        # SMART ALERT EVOLUTION (NO RANDOM RESET)
         self.current_alerts = self._generate_alerts()
 
-        done = self.step_count >= self.max_steps
+        # DONE CONDITIONS
+        done = False
+
+        if self.current_task == "hard":
+            if self.attack_stage >= 3:
+                done = True
+
+        if self.step_count >= self.max_steps:
+            done = True
 
         return {
             "observation": self._get_observation(),
@@ -66,7 +103,8 @@ class CyberWarEnv:
             "done": done,
             "info": {
                 "task": self.current_task,
-                "task_score": task_score
+                "task_score": task_score,
+                "attack_stage": self.attack_stage
             }
         }
 
@@ -78,12 +116,11 @@ class CyberWarEnv:
             threat_level=random.randint(1, 10)
         )
 
-    # ALERT GENERATOR
+    # ALERT GENERATOR (NOW STATE-DEPENDENT)
     def _generate_alerts(self) -> List[dict]:
         alerts = []
 
         if self.current_task == "easy":
-            # simple attacks
             for _ in range(2):
                 alerts.append({
                     "type": "brute_force",
@@ -92,7 +129,6 @@ class CyberWarEnv:
                 })
 
         elif self.current_task == "medium":
-            # mixed traffic
             for _ in range(3):
                 attack_type = random.choice(["ddos", "normal"])
                 alerts.append({
@@ -102,14 +138,15 @@ class CyberWarEnv:
                 })
 
         elif self.current_task == "hard":
-            # complex scenario
-            for _ in range(5):
-                attack_type = random.choice(["ddos", "brute_force", "normal"])
-                alerts.append({
-                    "type": attack_type,
-                    "severity": random.randint(3, 10),
-                    "is_attack": attack_type != "normal"
-                })
+            # PROGRESSION BASED ALERTS
+            if self.attack_stage == 0:
+                alerts.append({"type": "scan_activity", "severity": 3, "is_attack": True})
+            elif self.attack_stage == 1:
+                alerts.append({"type": "brute_force", "severity": 6, "is_attack": True})
+            elif self.attack_stage == 2:
+                alerts.append({"type": "ddos", "severity": 9, "is_attack": True})
+            else:
+                alerts.append({"type": "normal", "severity": 2, "is_attack": False})
 
         return alerts
 
@@ -117,27 +154,25 @@ class CyberWarEnv:
     def _calculate_reward(self, action: CyberAction, obs: CyberObservation):
         reward = 0
 
-        # 1. Attack handling reward
         for alert in self.current_alerts:
 
             if alert["is_attack"]:
                 if action.action_type in ["block_ip", "rate_limit"]:
-                    reward += 3   # correct mitigation
+                    reward += 4
                 elif action.action_type == "investigate":
-                    reward += 1   # partial good
+                    reward += 1
                 else:
-                    reward -= 3   # wrong
+                    reward -= 3
 
-            else:  # normal traffic
+            else:
                 if action.action_type in ["block_ip", "rate_limit"]:
-                    reward -= 4   # false positive (bad)
+                    reward -= 4
                 else:
-                    reward += 1   # correct ignore
+                    reward += 1
 
-        # 2. Threat level shaping
+        # shaping
         reward += (10 - obs.threat_level) * 0.5
 
-        # 3. System load shaping
         if obs.system_load < 50:
             reward += 3
         elif obs.system_load < 70:
@@ -145,21 +180,19 @@ class CyberWarEnv:
         else:
             reward -= 3
 
-        # 4. Over-action penalty (spamming)
         if action.action_type in ["block_ip", "rate_limit"] and len(self.current_alerts) == 0:
             reward -= 5
 
-        # 5. Encourage investigation
         if action.action_type == "investigate":
             reward += 0.5
 
         return reward
 
-    # EASY TASK
+    # EASY TASK (IMPROVED)
     def _grade_easy(self, obs: CyberObservation):
         brute_force = [a for a in obs.alerts if a.type == "brute_force"]
-
-        return 1.0 if len(brute_force) == 0 else 0.0
+        handled = 1 if len(brute_force) == 0 else 0
+        return handled * 1.0
 
     # MEDIUM TASK
     def _grade_medium(self, obs: CyberObservation):
@@ -175,17 +208,18 @@ class CyberWarEnv:
 
         return score
 
-    # HARD TASK
+    # HARD TASK (COMPLETELY FIXED)
     def _grade_hard(self, obs: CyberObservation):
-        score = 1.0
+        score = 0
 
-        if obs.threat_level > 5:
-            score -= 0.4
+        if self.attack_stage >= 1:
+            score += 0.3
+        if self.attack_stage >= 2:
+            score += 0.3
+        if self.attack_stage >= 3:
+            score += 0.4
 
-        if obs.system_load > 70:
-            score -= 0.3
-
-        return max(0.0, score)
+        return score
 
     # STATE
     def state(self):

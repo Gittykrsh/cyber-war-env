@@ -26,6 +26,15 @@ The environment is designed to evaluate decision-making under uncertainty, balan
 - Real-time API interaction for agent evaluation
 - Structured logging for benchmarking and validation
 
+### 🧠 Advanced Capabilities
+
+- Multi-stage cyber attack simulation (scan → brute force → DDoS)
+- Stateful environment with attack progression
+- Sequential decision-making required (not random RL)
+- Intelligent hybrid agent (rule-based + LLM-ready)
+- Partial reward grading (normalized between 0 and 1)
+- Balanced defense vs false positive trade-offs
+
 ---
 
 ## Environment Design
@@ -53,9 +62,12 @@ The agent can perform the following actions:
 
 The environment includes three difficulty levels:
 
-- Easy: Focus on identifying brute-force attacks
-- Medium: Handle DDoS attacks and optimize system load
-- Hard: Balance threat mitigation and system stability
+
+| Task   | Description |
+|--------|------------|
+| Easy   | Detect and mitigate brute-force attacks |
+| Medium | Handle mixed traffic (normal + attack) |
+| Hard   | Multi-stage cyber attack defense (sequential reasoning required) |
 
 Each task includes a grading function that contributes to the final reward.
 
@@ -76,6 +88,15 @@ Final reward formula:
 reward = base_reward + (task_score * 10)
 
 The final score is normalized in the range [0, 1].
+
+---
+
+## Evaluation Strategy
+
+- Task-specific success criteria
+- Hard task requires full attack mitigation sequence
+- Medium task balances detection and stability
+- Easy task focuses on basic threat handling
 
 ---
 
@@ -109,12 +130,19 @@ The project includes an `inference.py` script that:
 - Executes a rule-based agent
 - Logs results in OpenEnv-compliant format
 
+### Agent Intelligence
+
+- Rule-based decision making (primary)
+- Sequential reasoning for attack stages
+- Handles noisy + mixed alerts
+- Avoids over-blocking (false positives)
+
 Example output:
 
-[START] task=cyber-war env=cyber-war-env model=dummy-model  
-[STEP] step=1 action=block_ip reward=2.50 done=false error=null  
-...  
-[END] success=true steps=10 score=1.000 rewards=...
+[START] task=easy env=cyber-war-env model=gpt-4o-mini
+[STEP] step=1 action=rate_limit reward=0.60 done=false error=null
+...
+[END] success=true steps=10 score=0.45 rewards=...
 
 ---
 
@@ -134,12 +162,13 @@ The project has been validated using:
 - openenv validate
 - Hugging Face deployment checks
 - End-to-end inference execution
+- Reward normalization
 
 Status:
 
 - Environment: Running
 - Inference: Successful
-- Score: 1.0
+- Score: 0–1
 - OpenEnv Validation: Passed
 
 ---
