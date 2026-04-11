@@ -118,6 +118,7 @@ class CyberWarEnv:
 
     # ALERT GENERATOR (NOW STATE-DEPENDENT)
     def _generate_alerts(self) -> List[dict]:
+        random.seed(self.step_count + self.attack_stage)
         alerts = []
 
         if self.current_task == "easy":
@@ -189,37 +190,38 @@ class CyberWarEnv:
         return reward
 
     # EASY TASK (IMPROVED)
-    def _grade_easy(self, obs: CyberObservation):
-        brute_force = [a for a in obs.alerts if a.type == "brute_force"]
-        handled = 1 if len(brute_force) == 0 else 0
-        return handled * 1.0
+    def _grade_easy(self, obs):
+        brute_force = [a for a in self.current_alerts if a["type"] == "brute_force"]
+
+        if len(brute_force) == 0:
+            return 0.95
+        return 0.3
 
     # MEDIUM TASK
-    def _grade_medium(self, obs: CyberObservation):
-        ddos = [a for a in obs.alerts if a.type == "ddos"]
+    def _grade_medium(self, obs):
+        ddos = [a for a in self.current_alerts if a["type"] == "ddos"]
 
         score = 0.0
 
         if len(ddos) == 0:
             score += 0.5
 
-        if obs.system_load < 50:
-            score += 0.5
-
-        return score
-
-    # HARD TASK (COMPLETELY FIXED)
-    def _grade_hard(self, obs: CyberObservation):
-        score = 0
-
-        if self.attack_stage >= 1:
-            score += 0.3
-        if self.attack_stage >= 2:
-            score += 0.3
-        if self.attack_stage >= 3:
+        if obs.system_load < 60:
             score += 0.4
 
-        return score
+        return min(score, 0.95)
+    
+    # HARD TASK (COMPLETELY FIXED)
+    def _grade_hard(self, obs):
+
+        if self.attack_stage >= 3:
+            return 0.95
+        elif self.attack_stage == 2:
+            return 0.7
+        elif self.attack_stage == 1:
+            return 0.4
+        else:
+            return 0.1
 
     # STATE
     def state(self):
