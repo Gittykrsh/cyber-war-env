@@ -31,6 +31,11 @@ async def reset(request: Request):
 
         task = data.get("task", "easy")
 
+        if task not in ["easy", "medium", "hard"]:
+            task = "easy"
+        
+        print(f"[RESET] task={task}")
+
         return env.reset(task)
 
     except Exception as e:
@@ -41,7 +46,13 @@ async def reset(request: Request):
 @app.post("/step")
 def step(action: CyberAction):
     try:
+        if action.action_type not in ["block_ip", "rate_limit", "investigate"]:
+            raise HTTPException(status_code=400, detail="Invalid action")
+
+        print(f"[STEP] action={action.action_type}")
+
         return env.step(action)
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
